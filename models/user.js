@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypo = require('crypo-js');
 var userSchema = new mongoose.Schema({
     firstname:{
         type:String,
@@ -67,5 +68,18 @@ userSchema.pre('save', async function (next) {
     const salt = bcrypt.genSaltSync(10)
     this.password = await bcrypt.hash(this.password, salt)
 })
+userSchema.methods = {
+    isCorrectPassword: async function(password) {
+        return await bcrypt.compare(password, this.password)
+
+     },
+     createPasswordChangeToken: function(){
+          const resetToken = crypo.randomBytes(32).toString('hex')
+          this.passwordResetToken = crypo.createHash('sha256').update(resetToken).digest('hex')
+          this.passwordResetExpires = Date.now() + 15 * 60 * 1000
+          return resetToken
+     }
+
+}
 
 module.exports = mongoose.model('User', userSchema);
