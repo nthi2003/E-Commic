@@ -2,6 +2,7 @@ const User = require('../models/user')
 const asyncHandler = require('express-async-handler')
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 const jwt = require('jsonwebtoken')
+const sendMail = require('../ultils/sendMail')
 const { response } = require('express')
 const register = asyncHandler(async (req, res) => {
     const { email, password, firstname, lastname } = req.body
@@ -102,13 +103,25 @@ const logout = asyncHandler(async (req, res) => {
 // check token co giong voi email da gui hay khong
 // doi mat khau
 
-const fogotPassword = asyncHandler(async(req, res) => {
+const forgotPassword = asyncHandler(async(req, res) => {
     const {email} = req.query
     if(!email) throw new Error('Missing email')
     const user = await User.findOne({ email })
     if (!user) throw new Error(' User not found')
     const resetToken = user.createPasswordChangeToken()
     await user.save()
+
+    const html = `Vui lòng click vào link dưới đây để thây đổi mật khẩu. Link sẽ hết hạn trong 15 phút kể từ bây giờ. <a href=${process.env.URL_SERVER}/api/user/reset-password/${resetToken}>Click here</a> `
+
+    const data = {
+        to: email,
+        html
+    }
+    const rs = await sendMail(data)
+    return res.status(200).json({
+        success: true,
+        rs
+    })
 
 
 })
@@ -118,6 +131,6 @@ module.exports = {
     getCurrent,
     refreshAccessToken,
     logout,
-    fogotPassword
+    forgotPassword
     
 }

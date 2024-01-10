@@ -6,6 +6,8 @@ router.post('/login', ctrls.login)
 router.get('/current',verifyAccessToken, ctrls.getCurrent)
 router.post('/refreshtoken', ctrls.refreshAccessToken)
 router.get('/logout', ctrls.logout)
+router.get('/forgotpassword', ctrls.forgotPassword)
+
 
 
 module.exports = router
